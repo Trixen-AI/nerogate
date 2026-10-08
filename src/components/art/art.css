@@ -1,0 +1,34 @@
+/* Idle loops for the Nerogate illustrations. Each loop is slow and small; all stop for reduced motion. */
+.art svg { display: block; width: 100%; height: 100%; }
+.art .float { animation: art-float 5s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.art .float-2 { animation: art-float 6.5s ease-in-out -2s infinite; transform-box: fill-box; transform-origin: center; }
+.art .float-3 { animation: art-float 4.2s ease-in-out -1s infinite; transform-box: fill-box; transform-origin: center; }
+.art .flow { stroke-dasharray: 2 7; animation: art-flow 1.6s linear infinite; }
+.art .flow-slow { stroke-dasharray: 6 10; animation: art-flow 3s linear infinite; }
+.art .pulse { animation: art-pulse 2.8s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.art .pulse-2 { animation: art-pulse 2.8s ease-in-out -1.4s infinite; transform-box: fill-box; transform-origin: center; }
+.art .blink { animation: art-blink 2.4s steps(1) infinite; }
+.art .spin { animation: art-spin 18s linear infinite; transform-box: fill-box; transform-origin: center; }
+.art .travel { offset-rotate: 0deg; animation: art-travel 3.6s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+.art .travel-b { animation-delay: -1.2s; }
+.art .travel-c { animation-delay: -2.4s; }
+.art .sway { animation: art-sway 9s ease-in-out infinite; transform-box: view-box; transform-origin: 50% 100%; }
+.art .sway-2 { animation: art-sway 12s ease-in-out -4s infinite reverse; transform-box: view-box; transform-origin: 50% 100%; }
+.art .tick { animation: art-tick 6s cubic-bezier(0.7, 0, 0.3, 1) infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+.art .toggle { animation: art-toggle 4s cubic-bezier(0.65, 0, 0.35, 1) infinite; }
+.art .rise { animation: art-rise 3.2s ease-in-out infinite; transform-box: fill-box; transform-origin: 50% 100%; }
+
+@keyframes art-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes art-flow { to { stroke-dashoffset: -18; } }
+@keyframes art-pulse { 0%, 100% { opacity: 0.35; transform: scale(0.92); } 50% { opacity: 1; transform: scale(1); } }
+@keyframes art-blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.25; } }
+@keyframes art-spin { to { transform: rotate(360deg); } }
+@keyframes art-travel { 0% { offset-distance: 0%; opacity: 0; } 12% { opacity: 1; } 88% { opacity: 1; } 100% { offset-distance: 100%; opacity: 0; } }
+@keyframes art-sway { 0%, 100% { transform: rotate(-1.5deg) translateX(-10px); } 50% { transform: rotate(1.5deg) translateX(10px); } }
+@keyframes art-tick { 0%, 100% { transform: scaleY(0.82); } 50% { transform: scaleY(1); } }
+@keyframes art-toggle { 0%, 40% { transform: translateX(0); } 50%, 90% { transform: translateX(22px); } 100% { transform: translateX(0); } }
+@keyframes art-rise { 0%, 100% { transform: translateY(2px); } 50% { transform: translateY(-4px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .art * { animation: none !important; }
+}

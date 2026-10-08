@@ -1,0 +1,26 @@
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/hanken-grotesk';
+@import 'swiper/css';
+@import './styles/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  scroll-behavior: smooth;
+}
+body {
+  margin: 0;
+  background: #ffffff;
+  color: var(--color-darkest);
+  font-family: var(--font-text);
+  overflow-x: hidden;
+}
+:focus-visible {
+  outline: 2px solid var(--color-highlighted);
+  outline-offset: 2px;
+}

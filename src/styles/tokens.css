@@ -1,0 +1,80 @@
+/* Nerogate design tokens. Roles follow the reference layout; values are the Nerogate palette:
+   warm ink neutrals + one ember accent (Monero goes in, value comes out warm). */
+:root {
+  --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-standard: cubic-bezier(0.4, 0, 1, 1);
+  --duration-fast: 0.15s;
+  --duration-base: 0.25s;
+  --duration-medium: 0.3s;
+  --duration-enter: 0.5s;
+
+  /* neutral ramp (warm ink) */
+  --n-0: #0b0907;
+  --n-4: #0f0c0a;
+  --n-6: #120f0c;
+  --n-10: #19140f;
+  --n-30: #4b443d;
+  --n-50: #877d73;
+  --n-60: #9d948a;
+  --n-80: #d8cfc5;
+  --n-98: #fbf8f5;
+  --n-100: #ffffff;
+
+  /* ember accent */
+  --ember-40: #c8400c;
+  --ember-60: #ff8a4c;
+
+  --color-darkest: #19140f;
+  --color-darkest-inverted: #ffffff;
+  --color-dark: #463f38;
+  --color-dark-inverted: #dcd2c7;
+  --color-medium: #5f5750;
+  --color-medium-inverted: #dcd2c7;
+  --color-light: #7c736a;
+  --color-light-inverted: #9d948a;
+  --color-highlighted: #c8400c;
+  --color-highlighted-inverted: #ff7a33;
+  --color-text-links: #c8400c;
+  --color-text-links-inverted: #ff8a4c;
+
+  --bg-color-gradient: linear-gradient(to right, #fde7d6, #f8bf98);
+  --action-border-radius: 8px;
+
+  --btn-bg-primary: #c8400c;
+  --btn-bg-secondary: #f2e9e0;
+  --btn-bg-ghost: transparent;
+  --btn-bg-secondary-inverted: #ff7a3329;
+  --btn-text-color-default: #19140f;
+  --btn-text-color-inverted: #ffffff;
+  --btn-text-color-primary: #ffffff;
+
+  --card-bg-color-default: #ffffff;
+  --card-bg-color-inverted: #15110e;
+  --card-text-color-medium: #5f5750;
+  --card-text-color-medium-inverted: #dcd2c7;
+
+  --state-layer-hover: #ff7a3314;
+  --state-layer-focus: #ff7a331f;
+  --state-layer-active: #ff7a3329;
+  --state-layer-hover-inverted: #ffffff14;
+  --state-layer-focus-inverted: #ffffff1f;
+
+  --badge-bg-color-neutral: #f2e9e0;
+  --display-bg-color-neutral: #f2e9e0;
+  --display-bg-color-light: #c8400c;
+  --display-color-text-default: #19140f;
+  --display-color-text-light: #ffffff;
+
+  --blogpost-card-description-color: #7c736a;
+  --blogpost-card-text-title-color: #19140f;
+
+  --cta-card-title-color: #19140f;
+  --cta-card-title-color-inverted: #ffffff;
+  --cta-card-text-color: #463f38;
+  --cta-card-text-color-inverted: #dcd2c7;
+
+  --font-display: 'Hanken Grotesk Variable', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-text: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  --font-weight: 500;
+}
