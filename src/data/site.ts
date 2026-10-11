@@ -4,7 +4,7 @@ export const X_URL = 'https://x.com/Nerogate_'
 
 export const BRAND = {
   name: 'Nerogate',
-  ticker: '$NERO',
+  ticker: '$NGATE',
   // Shortened contract as given in the concept. Replace with the full mint address when it is final.
   contractShort: 'FwKV…pump',
   contractUrl: 'https://pump.fun',
@@ -14,7 +14,7 @@ export const NAV = [
   { label: 'Assets', href: '/#assets' },
   { label: 'How it works', href: '/#how-it-works' },
   { label: 'Route', href: '/#route' },
-  { label: '$NERO', href: '/#token' },
+  { label: '$NGATE', href: '/#token' },
 ]
 
 export const HERO = {
@@ -26,7 +26,7 @@ export const HERO = {
   anchors: [
     { label: 'Pick an asset', href: '#assets' },
     { label: 'Follow the route', href: '#route' },
-    { label: 'The $NERO token', href: '#token' },
+    { label: 'The $NGATE token', href: '#token' },
   ],
 }
 
@@ -160,7 +160,7 @@ export const HOW = {
     },
   ],
   extras: [
-    { title: 'Join the $NERO holders', body: 'Follow Nerogate on X for $NERO news and updates.', href: X_URL, art: 'community', external: true },
+    { title: 'Join the $NGATE holders', body: 'Follow Nerogate on X for $NGATE news and updates.', href: X_URL, art: 'community', external: true },
     { title: 'Read the risk notes', body: 'Custody, jurisdiction and route details in plain words.', href: '#risk', art: 'notes', external: false },
   ],
 } as const
@@ -205,7 +205,7 @@ export const WHY = {
   subtitle: ['Private on the way in.', 'Yours on the way out.'],
   body: 'Pay from any Monero wallet, settle to an address only you control, and see every leg of the route before you send a single piconero.',
   primary: { label: 'Get a quote', href: '/app' },
-  secondary: { label: `Buy ${'$NERO'}`, href: 'https://pump.fun' },
+  secondary: { label: `Buy ${'$NGATE'}`, href: 'https://pump.fun' },
   cards: [
     { title: 'Any Monero wallet', body: 'Desktop, mobile or hardware. If it can send XMR, it works.', art: 'wallet' },
     { title: 'Routed by KyberSwap', body: 'The Ethereum leg uses the best route KyberSwap finds, checked against the market price.', art: 'aggregator' },
@@ -261,7 +261,7 @@ export const FOOTER = {
     {
       title: 'Token',
       links: [
-        { label: '$NERO', href: '/#token' },
+        { label: '$NGATE', href: '/#token' },
         { label: 'Contract', href: 'https://pump.fun' },
       ],
     },

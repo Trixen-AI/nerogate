@@ -315,7 +315,7 @@ const wide: Record<string, () => ReactNode> = {
           <circle cx={x as number} cy={y as number} r="24" fill={c as string} stroke="#fff" strokeWidth="3" />
         </g>
       ))}
-      <Coin x={145} y={160} r={26} label="$NERO" size={10} className="float-3" />
+      <Coin x={145} y={160} r={26} label="$NGATE" size={9} className="float-3" />
     </Frame>
   ),
   notes: () => (
