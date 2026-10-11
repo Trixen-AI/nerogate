@@ -7,9 +7,9 @@
     <title>Nerogate | Monero in. Real-world assets out.</title>
     <meta
       name="description"
-      content="Nerogate is the private on-ramp from Monero to tokenized stocks, ETFs and gold on Solana. Pay with XMR from any wallet and hold SPYx, QQQx, GLDx, NVDAx and more yourself. No account."
+      content="Nerogate is the private on-ramp from Monero to tokenized stocks, ETFs and gold on Ethereum. Pay with XMR from any wallet and hold SPYx, QQQx, GLDx, NVDAx and more yourself. No account."
     />
-    <meta name="keywords" content="Monero, XMR, Solana, tokenized stocks, xStocks, RWA, SPYx, QQQx, GLDx, NVDAx, private on-ramp, Jupiter, $NERO" />
+    <meta name="keywords" content="Monero, XMR, Ethereum, ERC-20, tokenized stocks, xStocks, RWA, SPYx, QQQx, GLDx, NVDAx, private on-ramp, KyberSwap, $NERO" />
     <meta name="robots" content="index, follow, max-image-preview:large" />
     <link rel="canonical" href="https://nerogate.org/" />
     <meta name="theme-color" content="#0b0907" />
@@ -28,7 +28,7 @@
     <meta property="og:title" content="Nerogate | Monero in. Real-world assets out." />
     <meta
       property="og:description"
-      content="The private on-ramp to tokenized stocks, ETFs and gold on Solana. Pay with XMR from any wallet, hold it yourself."
+      content="The private on-ramp to tokenized stocks, ETFs and gold on Ethereum. Pay with XMR from any wallet, hold it yourself."
     />
     <meta property="og:image" content="https://nerogate.org/og-image.png" />
     <meta property="og:image:width" content="1200" />
@@ -42,13 +42,14 @@
     <meta name="twitter:title" content="Nerogate | Monero in. Real-world assets out." />
     <meta
       name="twitter:description"
-      content="The private on-ramp to tokenized stocks, ETFs and gold on Solana. Pay with XMR from any wallet, hold it yourself."
+      content="The private on-ramp to tokenized stocks, ETFs and gold on Ethereum. Pay with XMR from any wallet, hold it yourself."
     />
     <meta name="twitter:image" content="https://nerogate.org/og-image.png" />
     <meta name="twitter:image:alt" content="Nerogate: Monero in. Real-world assets out." />
 
     <!-- Connections the app makes early -->
-    <link rel="preconnect" href="https://lite-api.jup.ag" crossorigin />
+    <link rel="preconnect" href="https://aggregator-api.kyberswap.com" crossorigin />
+    <link rel="preconnect" href="https://api.coingecko.com" crossorigin />
     <link rel="preconnect" href="https://exolix.com" crossorigin />
 
     <script type="application/ld+json">
@@ -68,7 +69,7 @@
             "@id": "https://nerogate.org/#website",
             "url": "https://nerogate.org/",
             "name": "Nerogate",
-            "description": "The private on-ramp from Monero to tokenized stocks, ETFs and gold on Solana.",
+            "description": "The private on-ramp from Monero to tokenized stocks, ETFs and gold on Ethereum.",
             "publisher": { "@id": "https://nerogate.org/#org" },
             "inLanguage": "en"
           },
@@ -78,7 +79,7 @@
             "url": "https://nerogate.org/app",
             "applicationCategory": "FinanceApplication",
             "operatingSystem": "Web",
-            "description": "Swap XMR into tokenized stocks, ETFs, gold, USDC or SOL that settle to your own Solana wallet.",
+            "description": "Swap XMR into tokenized stocks, ETFs, gold, USDC or ETH that settle to your own Ethereum wallet.",
             "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
             "publisher": { "@id": "https://nerogate.org/#org" }
           }
@@ -88,7 +89,7 @@
   </head>
   <body>
     <noscript>
-      Nerogate is the private on-ramp from Monero to tokenized stocks, ETFs and gold on Solana. Turn on JavaScript to get a quote.
+      Nerogate is the private on-ramp from Monero to tokenized stocks, ETFs and gold on Ethereum. Turn on JavaScript to get a quote.
     </noscript>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>

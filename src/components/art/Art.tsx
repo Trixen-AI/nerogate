@@ -286,9 +286,9 @@ const wide: Record<string, () => ReactNode> = {
       </g>
     </Frame>
   ),
-  sol: () => (
+  eth: () => (
     <Frame w={W} h={H} dark glow={[0.5, 0.45]}>
-      <Coin x={145} y={104} r={50} label="SOL" tone="ink" className="float" />
+      <Coin x={145} y={104} r={50} label="ETH" tone="ink" className="float" />
       <circle cx="145" cy="108" r="78" fill="none" stroke={GLOW} strokeOpacity="0.35" strokeWidth="1.5" strokeDasharray="2 8" className="spin" />
       <circle cx="145" cy="108" r="98" fill="none" stroke={GLOW} strokeOpacity="0.18" strokeWidth="1.5" />
     </Frame>
@@ -406,7 +406,7 @@ const tall: Record<string, () => ReactNode> = {
       <rect x="112" y="40" width="96" height="20" rx="8" fill="#3a2f27" />
     </Frame>
   ),
-  jupiter: () => {
+  aggregator: () => {
     const paths = ['M40 50 C 120 50, 150 90, 240 90', 'M40 90 C 120 90, 150 90, 240 90', 'M40 130 C 120 130, 150 90, 240 90']
     return (
       <Frame w={TW} h={TH} dark glow={[0.75, 0.5]}>
@@ -448,7 +448,7 @@ const tall: Record<string, () => ReactNode> = {
       ))}
     </Frame>
   ),
-  'solana-address': () => (
+  'eth-address': () => (
     <Frame w={TW} h={TH}>
       <g className="float">
         <rect x="70" y="62" width="180" height="48" rx="24" fill={CREAM} />
@@ -536,7 +536,7 @@ export function PromiseArt() {
   )
 }
 
-/** Leg one: XMR coins travel through the gate and land as SOL. */
+/** Leg one: XMR coins travel through the gate and land as ETH. */
 export function LegOneArt() {
   const d = 'M110 140 C 200 140, 220 120, 290 120 S 400 140, 470 140'
   return (
@@ -547,12 +547,12 @@ export function LegOneArt() {
       <Traveller d={d} r={6} fill={INK} delay="travel-b" />
       <Traveller d={d} r={7} fill={EMBER_L} delay="travel-c" />
       <Coin x={110} y={136} r={42} label="XMR" tone="ink" className="float" />
-      <Coin x={470} y={136} r={42} label="SOL" tone="cream" className="float-2" />
+      <Coin x={470} y={136} r={42} label="ETH" tone="cream" className="float-2" />
     </Frame>
   )
 }
 
-/** Leg two (replaces the reference's looping video): SOL fans out into asset tokens. */
+/** Leg two (replaces the reference's looping video): ETH fans out into asset tokens. */
 export function LegTwoArt() {
   const targets = [
     [440, 60, 'SPYx'],
@@ -570,7 +570,7 @@ export function LegTwoArt() {
           </g>
         )
       })}
-      <Coin x={130} y={122} r={48} label="SOL" tone="ink" className="pulse" />
+      <Coin x={130} y={122} r={48} label="ETH" tone="ink" className="pulse" />
       {targets.map(([x, y, t], i) => (
         <Plate key={t} x={x - 50} y={y - 20} w={104} h={40} label={t} tone={i === 1 ? 'ember' : 'cream'} className={['float', 'float-2', 'float-3'][i]} />
       ))}
@@ -637,7 +637,7 @@ export function StepArt({ step }: { step: 0 | 1 }) {
               <g key={i} className={['float', 'float-2', 'float-3', 'float'][i]}>
                 <rect x={26 + i * 84} y={176 + (i % 2) * 40} width="66" height="66" rx="16" fill={i === 3 ? EMBER : '#3a2419'} stroke={GLOW} strokeOpacity="0.45" />
                 <text x={59 + i * 84} y={209 + (i % 2) * 40} dy="0.35em" textAnchor="middle" fontFamily="Inter Variable, sans-serif" fontWeight="600" fontSize="12" fill="#fff" opacity={i === 3 ? 1 : 0.7}>
-                  {['XMR', 'SOL', 'sign', 'SPYx'][i]}
+                  {['XMR', 'ETH', 'sign', 'NVDAx'][i]}
                 </text>
               </g>
             ))}
@@ -668,7 +668,7 @@ export function SwitchArt() {
 }
 
 /** Guide thumbnails (16:9). */
-export function GuideArt({ name }: { name: 'refund' | 'spl' | 'clock' }) {
+export function GuideArt({ name }: { name: 'refund' | 'erc20' | 'clock' }) {
   if (name === 'refund')
     return (
       <Frame w={379} h={213} dark glow={[0.3, 0.4]}>
@@ -679,11 +679,11 @@ export function GuideArt({ name }: { name: 'refund' | 'spl' | 'clock' }) {
         <text x="290" y="150" dy="0.35em" textAnchor="middle" fontFamily="Inter Variable, sans-serif" fontWeight="600" fontSize="13" fill="#fff">4… or 8…</text>
       </Frame>
     )
-  if (name === 'spl')
+  if (name === 'erc20')
     return (
       <Frame w={379} h={213} glow={[0.7, 0.3]}>
-        <Plate x={70} y={76} w={110} h={56} label="SPYx" sub="SPL token" tone="ink" />
-        <Plate x={200} y={76} w={110} h={56} label="USDC" sub="SPL token" tone="cream" />
+        <Plate x={70} y={76} w={110} h={56} label="SPYx" sub="ERC-20" tone="ink" />
+        <Plate x={200} y={76} w={110} h={56} label="USDC" sub="ERC-20" tone="cream" />
         <rect x="50" y="56" width="280" height="96" rx="28" fill="none" stroke={INK} strokeOpacity="0.25" strokeDasharray="4 8" strokeWidth="2" />
       </Frame>
     )
@@ -700,7 +700,7 @@ export function GuideArt({ name }: { name: 'refund' | 'spl' | 'clock' }) {
 }
 
 /** Wide 16:9 art for the "also on the menu" carousel. */
-export function MenuArt({ name }: { name: 'usdc' | 'sol' }) {
+export function MenuArt({ name }: { name: 'usdc' | 'eth' }) {
   return name === 'usdc' ? (
     <Frame w={368} h={207} glow={[0.5, 0.3]}>
       {[0, 1, 2].map((i) => (
@@ -713,7 +713,7 @@ export function MenuArt({ name }: { name: 'usdc' | 'sol' }) {
     </Frame>
   ) : (
     <Frame w={368} h={207} dark glow={[0.5, 0.5]}>
-      <Coin x={184} y={100} r={54} label="SOL" tone="ink" className="float" />
+      <Coin x={184} y={100} r={54} label="ETH" tone="ink" className="float" />
       <circle cx="184" cy="104" r="84" fill="none" stroke={GLOW} strokeOpacity="0.3" strokeDasharray="2 8" strokeWidth="1.5" className="spin" />
     </Frame>
   )

@@ -9,11 +9,11 @@ export type LocalOrder = {
   refund?: string
   depositAddress: string
   createdAt: number
-  quote?: { sol: number; assetOut?: number; usd?: number }
-  buy?: { signature: string; outAmount: number; at: number }
+  quote?: { eth: number; assetOut?: number; usd?: number }
+  buy?: { hash: string; outAmount: number; at: number }
 }
 
-const KEY = 'nerogate.orders.v1'
+const KEY = 'nerogate.orders.eth.v1'
 const EVENT = 'nerogate:orders'
 
 function read(): LocalOrder[] {

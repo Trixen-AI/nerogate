@@ -1,14 +1,14 @@
 import { useEffect, useId, useMemo, useRef, useState } from 'react'
 import { ASSETS, CATEGORIES, type Asset } from '../lib/assets'
 import { usd } from '../lib/format'
-import { usePrices } from '../hooks'
+import { useMarkets } from '../hooks'
 import { AssetBadge } from './ui'
 
 /** "You want" selector: grouped like the concept (Index ETFs, Commodities, Stocks, Stablecoin, Native). */
 export function AssetPicker({ value, onChange, exclude }: { value: Asset; onChange: (a: Asset) => void; exclude?: string[] }) {
   const [open, setOpen] = useState(false)
   const [query, setQuery] = useState('')
-  const prices = usePrices()
+  const prices = useMarkets()
   const root = useRef<HTMLDivElement>(null)
   const listId = useId()
 
@@ -39,7 +39,7 @@ export function AssetPicker({ value, onChange, exclude }: { value: Asset; onChan
     })).filter((g) => g.items.length)
   }, [query, exclude])
 
-  const price = prices.data?.[value.mint]?.usdPrice
+  const price = prices.data?.[value.symbol]?.usdPrice
 
   return (
     <div ref={root} className="relative">
@@ -98,7 +98,7 @@ export function AssetPicker({ value, onChange, exclude }: { value: Asset; onChan
                       <span className="block text-label-md text-darkest leading-tight">{a.symbol}</span>
                       <span className="block text-body-sm text-ink-50">{a.name}</span>
                     </span>
-                    <span className="text-body-sm text-ink-30">{usd(prices.data?.[a.mint]?.usdPrice)}</span>
+                    <span className="text-body-sm text-ink-30">{usd(prices.data?.[a.symbol]?.usdPrice)}</span>
                   </button>
                 ))}
               </div>

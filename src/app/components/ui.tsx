@@ -66,8 +66,8 @@ export function AssetBadge({ asset, size = 36 }: { asset: Asset; size?: number }
 const STAGE_LABEL: Record<Stage, string> = {
   deposit: 'Awaiting XMR',
   confirming: 'Confirming deposit',
-  exchanging: 'Exchanging to SOL',
-  delivered: 'SOL delivered',
+  exchanging: 'Exchanging to ETH',
+  delivered: 'ETH delivered',
   expired: 'Expired',
   refunded: 'Refunded',
   failed: 'Needs attention',

@@ -11,7 +11,7 @@ export type Guide = {
   tags: readonly string[]
   title: string
   meta: string
-  art: 'refund' | 'spl' | 'clock'
+  art: 'refund' | 'erc20' | 'clock'
   summary: string
   body: GuideBlock[]
 }
@@ -27,7 +27,7 @@ export const GUIDE_LIST: Guide[] = [
     body: [
       {
         type: 'p',
-        text: 'The refund field on the quote form is optional. You only need it for one case: the XMR to SOL leg fails, for example because the rate moved too far or the amount you sent does not match the quote. When that happens, the XMR is sent back to the address you gave. Without one, there is no address the provider can return it to automatically.',
+        text: 'The refund field on the quote form is optional. You only need it for one case: the XMR to ETH leg fails, for example because the rate moved too far or the amount you sent does not match the quote. When that happens, the XMR is sent back to the address you gave. Without one, there is no address the provider can return it to automatically.',
       },
       { type: 'h2', text: 'What a Monero address looks like' },
       {
@@ -59,34 +59,40 @@ export const GUIDE_LIST: Guide[] = [
     ],
   },
   {
-    slug: 'what-is-an-spl-token',
-    tags: ['Guide', 'Solana'],
-    title: 'What an SPL token is, and why it matters here',
+    slug: 'what-is-an-erc20-token',
+    tags: ['Guide', 'Ethereum'],
+    title: 'What an ERC-20 token is, and why it matters here',
     meta: '5 min read',
-    art: 'spl',
-    summary: 'Everything you can receive through Nerogate lands as an SPL token. Here is what that means for you.',
+    art: 'erc20',
+    summary: 'Everything except ETH that you receive through Nerogate is an ERC-20 token. Here is what that means for you.',
     body: [
       {
         type: 'p',
-        text: 'SPL is the token standard on Solana. USDC, the xStocks such as SPYx or NVDAx, and most other assets on the network follow it, some through Token Extensions, the newer version of the same standard. Following one standard is what lets any Solana wallet show, send and swap them the same way.',
+        text: 'ERC-20 is the token standard on Ethereum. USDC and the xStocks such as SPYx or NVDAx all follow it. Following one standard is what lets any Ethereum wallet show, send and swap them the same way.',
       },
       { type: 'h2', text: 'Where your tokens actually live' },
       {
         type: 'p',
-        text: 'Your Solana address does not hold tokens directly. Each token you own sits in a small token account linked to your address. Wallets create and hide these accounts for you, so you normally just see a balance next to the token name.',
+        text: 'Each token is a contract on Ethereum that keeps a ledger of who holds how much. Your address does not store the token itself; the contract records the balance next to your address. Your wallet reads those balances and shows them next to the token name. If a token does not appear automatically, you can add it in your wallet with its contract address, which every asset page in the app shows.',
       },
+      { type: 'h2', text: 'Gas is paid in ETH' },
       {
         type: 'p',
-        text: 'Creating a token account costs a small refundable deposit in SOL. This is one reason a quote keeps 0.01 SOL back for fees: it covers the account deposit and the network fee for the Jupiter swap, so you can sign without topping up first.',
+        text: 'Every Ethereum transaction costs gas, paid in ETH. That is why a quote keeps a small amount of the bridged ETH back: it pays for the one transaction that buys your asset. The amount follows the live gas price and is shown in every quote as "Kept for gas".',
       },
       { type: 'h2', text: 'What this means for you' },
       {
         type: 'list',
         items: [
-          'The asset is in your own wallet. You can move it, sell it on any Solana exchange or simply hold it.',
-          'You need a wallet that supports Solana tokens. All the widely used Solana wallets do.',
-          'Sending a token to an address on another chain loses it. Keep it on Solana unless you use a bridge that supports it.',
+          'The asset is in your own wallet. You can move it, sell it on any Ethereum exchange or simply hold it.',
+          'Keep a little ETH in the wallet. Moving or selling the token later needs gas too.',
+          'Check the network before sending. An address can look the same on several networks; sending a token over the wrong network can lose it.',
         ],
+      },
+      { type: 'h2', text: 'Liquidity on Ethereum is thinner for some assets' },
+      {
+        type: 'p',
+        text: 'Tokenized stocks trade in smaller pools on Ethereum than large tokens like USDC. For some assets and amounts, the best available route returns noticeably less than the market price. The quote shows this as "below market price"; the app warns from 3% and will not continue at 15% or more.',
       },
       { type: 'h2', text: 'A token is not the same as a share' },
       {
@@ -105,16 +111,16 @@ export const GUIDE_LIST: Guide[] = [
     title: 'Why settlement takes 10 to 30 minutes',
     meta: '3 min read',
     art: 'clock',
-    summary: 'Most of the wait happens on the Monero side, before any SOL moves. Here is where the minutes go.',
+    summary: 'Most of the wait happens on the Monero side, before any ETH moves. Here is where the minutes go.',
     body: [
       {
         type: 'p',
-        text: 'A Nerogate swap has two legs. The Solana leg is fast: once SOL is in your wallet, the Jupiter swap settles within seconds of your signature. Nearly all of the 10 to 30 minutes is spent on the first leg, getting from XMR to SOL.',
+        text: 'A Nerogate swap has two legs. The Ethereum leg is quick: Ethereum adds a block about every 12 seconds, so once ETH is in your wallet the swap usually confirms within a minute of sending it. Nearly all of the 10 to 30 minutes is spent on the first leg, getting from XMR to ETH.',
       },
       { type: 'h2', text: 'Monero confirmations' },
       {
         type: 'p',
-        text: 'Monero produces a block roughly every two minutes, and newly received XMR cannot be spent again until about ten blocks have passed. The instant-exchange provider waits for your deposit to confirm before it releases SOL. Ten blocks at two minutes each is already around twenty minutes.',
+        text: 'Monero produces a block roughly every two minutes, and newly received XMR cannot be spent again until about ten blocks have passed. The instant-exchange provider waits for your deposit to confirm before it releases ETH. Ten blocks at two minutes each is already around twenty minutes.',
       },
       { type: 'h2', text: 'What makes it faster or slower' },
       {
@@ -128,11 +134,11 @@ export const GUIDE_LIST: Guide[] = [
       { type: 'h2', text: 'What you see while you wait' },
       {
         type: 'p',
-        text: 'After you send XMR to the one-time deposit address, there is nothing else to do until SOL lands at your Solana address. Then one signature buys the asset through Jupiter.',
+        text: 'After you send XMR to the one-time deposit address, there is nothing else to do until ETH lands at your Ethereum address. Then one transaction buys the asset through KyberSwap.',
       },
       {
         type: 'note',
-        text: 'For now, the XMR to SOL leg runs through an instant-exchange provider that holds funds while the swap runs. A non-custodial THORChain route switches on automatically once the XMR pool is live on mainnet.',
+        text: 'For now, the XMR to ETH leg runs through an instant-exchange provider that holds funds while the swap runs. A non-custodial THORChain route switches on automatically once the XMR pool is live on mainnet.',
       },
     ],
   },

@@ -28,6 +28,6 @@ export function ago(iso: string | number | undefined) {
   return new Date(t).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
 }
 
-export const solscanTx = (sig: string) => `https://solscan.io/tx/${sig}`
-export const solscanAccount = (a: string) => `https://solscan.io/account/${a}`
-export const solscanToken = (m: string) => `https://solscan.io/token/${m}`
+export const etherscanTx = (hash: string) => `https://etherscan.io/tx/${hash}`
+export const etherscanAddress = (a: string) => `https://etherscan.io/address/${a}`
+export const etherscanToken = (a: string) => `https://etherscan.io/token/${a}`

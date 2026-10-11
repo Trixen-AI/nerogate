@@ -4,7 +4,7 @@ const SITE = 'https://nerogate.org'
 const DEFAULT = {
   title: 'Nerogate | Monero in. Real-world assets out.',
   description:
-    'Nerogate is the private on-ramp from Monero to tokenized stocks, ETFs and gold on Solana. Pay with XMR from any wallet and hold SPYx, QQQx, GLDx, NVDAx and more yourself. No account.',
+    'Nerogate is the private on-ramp from Monero to tokenized stocks, ETFs and gold on Ethereum. Pay with XMR from any wallet and hold SPYx, QQQx, GLDx, NVDAx and more yourself. No account.',
   path: '/',
 }
 

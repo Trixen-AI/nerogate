@@ -1,18 +1,10 @@
 import { useEffect, useState } from 'react'
 import useSWR from 'swr'
-import { ALL_MINTS, type Asset, SOL_MINT } from './lib/assets'
-import {
-  FEE_RESERVE_SOL,
-  getPrices,
-  getQuote,
-  getXmrSolOrder,
-  getXmrSolRate,
-  isFinalStage,
-  LAMPORTS,
-  stageOf,
-} from './lib/api'
+import { formatUnits, parseEther } from 'viem'
+import { type Asset, isNative } from './lib/assets'
+import { getMarkets, getQuote, getXmrEthOrder, getXmrEthRate, isFinalStage, stageOf } from './lib/api'
+import { getGasReserveWei } from './lib/chain'
 import { fetchHoldings } from './lib/holdings'
-import { connection } from './lib/connection'
 
 export function useDebounced<T>(value: T, ms = 400) {
   const [v, setV] = useState(value)
@@ -23,65 +15,82 @@ export function useDebounced<T>(value: T, ms = 400) {
   return v
 }
 
-/** Live USD prices for every supported asset (one request, refreshed every 30 s). */
-export function usePrices() {
-  return useSWR('prices', () => getPrices(ALL_MINTS), { refreshInterval: 30_000, keepPreviousData: true })
+/** Market price, 24h change, market cap and volume for every asset (CoinGecko, one request per minute). */
+export function useMarkets() {
+  return useSWR('markets', getMarkets, { refreshInterval: 60_000, keepPreviousData: true, dedupingInterval: 30_000 })
 }
 
-/** XMR -> SOL rate from Exolix. */
+/** ETH kept back for the swap's gas, from the live gas price. */
+export function useGasReserve() {
+  return useSWR('gas-reserve', async () => Number(formatUnits(await getGasReserveWei(), 18)), { refreshInterval: 30_000, keepPreviousData: true })
+}
+
+/** XMR -> ETH rate from Exolix. */
 export function useXmrRate(amount: number) {
-  return useSWR(amount > 0 ? ['xmr-rate', amount] : null, () => getXmrSolRate(amount), {
+  return useSWR(amount > 0 ? ['xmr-rate', amount] : null, () => getXmrEthRate(amount), {
     refreshInterval: 30_000,
     keepPreviousData: true,
     shouldRetryOnError: false,
   })
 }
 
-/** SOL -> asset quote from Jupiter for a SOL amount. */
-export function useAssetQuote(asset: Asset | undefined, sol: number) {
-  const lamports = BigInt(Math.max(0, Math.floor(sol * LAMPORTS)))
-  const key = asset && asset.mint !== SOL_MINT && lamports > 0n ? ['jup-quote', asset.mint, lamports.toString()] : null
-  return useSWR(key, () => getQuote(asset!.mint, lamports), {
+/** ETH -> asset quote from KyberSwap for an ETH amount. */
+export function useAssetQuote(asset: Asset | undefined, eth: number) {
+  const wei = eth > 0 ? parseEther(eth.toFixed(18)) : 0n
+  const key = asset && !isNative(asset) && wei > 0n ? ['kyber-quote', asset.address, wei.toString()] : null
+  const swr = useSWR(key, () => getQuote(asset!.address, wei), {
     refreshInterval: 20_000,
     keepPreviousData: true,
     shouldRetryOnError: false,
   })
+  // keepPreviousData can briefly hold the last asset's quote; never show it under another ticker.
+  const matches = !!asset && swr.data?.routeSummary.tokenOut.toLowerCase() === asset.address.toLowerCase()
+  return { data: matches ? swr.data : undefined, error: swr.error as Error | undefined, isLoading: swr.isLoading || (!!swr.data && !matches) }
+}
+
+/**
+ * How much worse a quote is than the market: value out vs value in, both at CoinGecko prices.
+ * Positive = loss in percent. Captures DEX price impact, fees and thin liquidity together.
+ */
+export function lossVsMarket(ethIn: number, out: number | undefined, ethPrice: number | undefined, assetPrice: number | undefined) {
+  if (out == null || !ethPrice || !assetPrice || ethIn <= 0) return undefined
+  return (1 - (out * assetPrice) / (ethIn * ethPrice)) * 100
 }
 
 /** Both legs together, as shown on the quote card. */
 export function useTwoLegQuote(asset: Asset | undefined, xmr: number) {
   const rate = useXmrRate(xmr)
-  const solAfterBridge = rate.data?.toAmount ?? 0
-  const isSol = asset?.mint === SOL_MINT
-  const spend = isSol ? 0 : Math.max(0, solAfterBridge - FEE_RESERVE_SOL)
-  const quote = useAssetQuote(asset, spend)
-  const prices = usePrices()
+  const gas = useGasReserve()
+  const markets = useMarkets()
+  const ethAfterBridge = rate.data?.toAmount ?? 0
+  const native = !!asset && isNative(asset)
+  const keptForGas = native ? 0 : (gas.data ?? 0)
+  const spend = native ? 0 : Math.max(0, ethAfterBridge - keptForGas)
+  const quote = useAssetQuote(asset, gas.data != null || native ? spend : 0)
 
-  const assetOut = isSol
-    ? solAfterBridge
-    : quote.data && asset
-      ? Number(quote.data.outAmount) / 10 ** asset.decimals
-      : undefined
-  const price = asset ? prices.data?.[asset.mint]?.usdPrice : undefined
+  const assetOut = native ? ethAfterBridge : quote.data && asset ? Number(formatUnits(BigInt(quote.data.routeSummary.amountOut), asset.decimals)) : undefined
+  const price = asset ? markets.data?.[asset.symbol]?.usdPrice : undefined
+  const ethPrice = markets.data?.ETH?.usdPrice
   const usdValue = assetOut != null && price ? assetOut * price : undefined
-  const impact = quote.data ? Number(quote.data.priceImpactPct) * 100 : isSol ? 0 : undefined
+  const loss = native ? 0 : lossVsMarket(spend, assetOut, ethPrice, price)
 
   return {
     rate,
     quote,
-    solAfterBridge,
-    keptForFees: isSol ? 0 : FEE_RESERVE_SOL,
+    markets,
+    ethAfterBridge,
+    keptForGas,
     assetOut,
     usdValue,
-    impact,
-    loading: rate.isLoading || (!isSol && quote.isLoading),
+    loss,
+    loading: rate.isLoading || gas.isLoading || (!native && quote.isLoading),
     error: (rate.error ?? quote.error) as (Error & { minAmount?: number; maxAmount?: number }) | undefined,
   }
 }
 
 /** Exolix order status, polled every 15 s until the order reaches a final state. */
 export function useOrderStatus(id: string | undefined) {
-  return useSWR(id ? ['order', id] : null, () => getXmrSolOrder(id!), {
+  return useSWR(id ? ['order', id] : null, () => getXmrEthOrder(id!), {
     refreshInterval: (data) => (data && isFinalStage(stageOf(data.status)) ? 0 : 15_000),
     keepPreviousData: true,
   })
@@ -89,7 +98,7 @@ export function useOrderStatus(id: string | undefined) {
 
 /** Real balances at an address. */
 export function useHoldings(address: string | undefined) {
-  return useSWR(address ? ['holdings', address] : null, () => fetchHoldings(connection, address!), {
+  return useSWR(address ? ['holdings', address.toLowerCase()] : null, () => fetchHoldings(address as `0x${string}`), {
     refreshInterval: 60_000,
     errorRetryCount: 2,
     keepPreviousData: true,

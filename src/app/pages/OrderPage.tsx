@@ -3,19 +3,18 @@ import { Link, useParams } from 'react-router'
 import { AssetPicker } from '../components/AssetPicker'
 import { BuyPanel } from '../components/BuyPanel'
 import { CopyButton, Notice, PageHead, Panel, QR, Row, Skeleton, StagePill } from '../components/ui'
-import { assetBySymbol, SOL_MINT, type Asset } from '../lib/assets'
-import { FEE_RESERVE_SOL, stageOf, type Stage } from '../lib/api'
-import { ago, num, short, solscanAccount, solscanTx } from '../lib/format'
+import { assetBySymbol, isNative, type Asset } from '../lib/assets'
+import { stageOf, type ExolixOrder, type Stage } from '../lib/api'
+import { ago, etherscanAddress, etherscanTx, num, short } from '../lib/format'
 import { saveOrder, updateOrder, useOrders, type LocalOrder } from '../lib/orders'
-import type { ExolixOrder } from '../lib/api'
-import { useOrderStatus } from '../hooks'
+import { useGasReserve, useOrderStatus } from '../hooks'
 import { cx } from '@/lib/cx'
 
 const ORDER: Stage[] = ['deposit', 'confirming', 'exchanging', 'delivered']
 
 /** Remember the completed buy on this device (creating the local record if the order came from another device). */
-function recordBuy(local: LocalOrder | undefined, data: ExolixOrder | undefined, assetSymbol: string, signature: string, outAmount: number) {
-  const buy = { signature, outAmount, at: Date.now() }
+function recordBuy(local: LocalOrder | undefined, data: ExolixOrder | undefined, assetSymbol: string, hash: string, outAmount: number) {
+  const buy = { hash, outAmount, at: Date.now() }
   if (local) updateOrder(local.id, { buy })
   else if (data)
     saveOrder({
@@ -48,15 +47,26 @@ function Step({ n, title, state, children }: { n: number; title: string; state: 
   )
 }
 
+/** Exolix returns a full explorer link for the Monero deposit; the ETH payout hash is linked to Etherscan. */
+function HashLink({ hash, href }: { hash?: string | null; href?: string | null }) {
+  if (!hash) return null
+  return (
+    <a className="underline underline-offset-2" href={href ?? '#'} target="_blank" rel="noopener noreferrer">
+      {short(hash, 6, 6)}
+    </a>
+  )
+}
+
 export default function OrderPage() {
   const { id } = useParams()
   const local = useOrders().find((o) => o.id === id)
   const status = useOrderStatus(id)
+  const gas = useGasReserve()
   const data = status.data
   const stage = stageOf(data?.status)
   const [pickedAsset, setPickedAsset] = useState<Asset>(assetBySymbol(local?.asset) ?? assetBySymbol('SPYx')!)
   const asset = assetBySymbol(local?.asset) ?? pickedAsset
-  const isSol = asset.mint === SOL_MINT
+  const native = isNative(asset)
   const bought = !!local?.buy
 
   if (status.error && !data) {
@@ -77,7 +87,6 @@ export default function OrderPage() {
   const destination = data?.withdrawalAddress ?? local?.destination
   const uri = depositAddress && amount ? `monero:${depositAddress}?tx_amount=${amount}` : ''
 
-
   return (
     <div className="flex flex-col gap-8">
       <PageHead
@@ -88,7 +97,7 @@ export default function OrderPage() {
             {data?.createdAt && <span>· created {ago(data.createdAt)}</span>}
           </span>
         }
-        action={data ? <StagePill stage={stage} bought={bought || (isSol && stage === 'delivered')} /> : <Skeleton className="h-7 w-32" />}
+        action={data ? <StagePill stage={stage} bought={bought || (native && stage === 'delivered')} /> : <Skeleton className="h-7 w-32" />}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-[1.25fr_1fr] gap-6 items-start">
@@ -144,23 +153,23 @@ export default function OrderPage() {
             <Step n={2} title="Deposit confirming on Monero" state={stateOf(1)}>
               <Notice>Monero needs about ten blocks (roughly 20 minutes) before the deposit can move.</Notice>
             </Step>
-            <Step n={3} title="Exchanging XMR to SOL" state={stateOf(2)}>
-              <Notice>The provider is sending SOL to {destination ? short(destination, 5, 5) : 'your address'}.</Notice>
+            <Step n={3} title="Exchanging XMR to ETH" state={stateOf(2)}>
+              <Notice>The provider is sending ETH to {destination ? short(destination, 6, 4) : 'your address'}.</Notice>
             </Step>
-            <Step n={4} title={`SOL delivered${data?.amountTo ? `: ${num(data.amountTo)} SOL` : ''}`} state={stateOf(3)} />
+            <Step n={4} title={`ETH delivered${data?.amountTo ? `: ${num(data.amountTo)} ETH` : ''}`} state={stateOf(3)} />
           </ol>
         </Panel>
 
         <div className="flex flex-col gap-6">
-          {stage === 'delivered' && !isSol && (
+          {stage === 'delivered' && !native && (
             <Panel title={bought ? `${asset.symbol} bought` : `Final step: buy ${asset.symbol}`}>
               {bought ? (
                 <div className="flex flex-col gap-3">
                   <Notice tone="ok">
                     ≈ {num(local!.buy!.outAmount)} {asset.symbol} bought {ago(local!.buy!.at)}.
                   </Notice>
-                  <a className="text-label-sm text-ember-40 underline underline-offset-4" href={solscanTx(local!.buy!.signature)} target="_blank" rel="noopener noreferrer">
-                    View on Solscan
+                  <a className="text-label-sm text-ember-40 underline underline-offset-4" href={etherscanTx(local!.buy!.hash)} target="_blank" rel="noopener noreferrer">
+                    View on Etherscan
                   </a>
                   <Link to="/app/portfolio" className="text-label-sm text-ember-40">
                     See it in your portfolio
@@ -171,14 +180,14 @@ export default function OrderPage() {
                   {!local && (
                     <div className="flex flex-col gap-2">
                       <p className="text-label-sm text-darkest">Which asset do you want?</p>
-                      <AssetPicker value={pickedAsset} onChange={setPickedAsset} exclude={['SOL']} />
+                      <AssetPicker value={pickedAsset} onChange={setPickedAsset} exclude={['ETH']} />
                     </div>
                   )}
                   <BuyPanel
                     asset={asset}
-                    suggestedSol={data?.amountTo ? Math.max(0, data.amountTo - FEE_RESERVE_SOL) : undefined}
+                    suggestedEth={data?.amountTo ? Math.max(0, data.amountTo - (gas.data ?? 0)) : undefined}
                     expectedWallet={destination}
-                    onDone={(sig, out) => recordBuy(local, data, asset.symbol, sig, out)}
+                    onDone={(hash, out) => recordBuy(local, data, asset.symbol, hash, out)}
                   />
                 </div>
               )}
@@ -187,36 +196,20 @@ export default function OrderPage() {
 
           <Panel title="Details">
             <Row label="You pay">{amount ? `${num(amount)} XMR` : '–'}</Row>
-            <Row label="Expected SOL">{local?.quote?.sol ? `≈ ${num(local.quote.sol, 5)} SOL` : data?.amountTo ? `${num(data.amountTo)} SOL` : '–'}</Row>
-            {!isSol && local?.quote?.assetOut != null && <Row label={`Quoted ${asset.symbol}`}>≈ {num(local.quote.assetOut, 5)}</Row>}
+            <Row label="Expected ETH">{local?.quote?.eth ? `≈ ${num(local.quote.eth, 6)} ETH` : data?.amountTo ? `${num(data.amountTo)} ETH` : '–'}</Row>
+            {!native && local?.quote?.assetOut != null && <Row label={`Quoted ${asset.symbol}`}>≈ {num(local.quote.assetOut, 5)}</Row>}
             <Row label="Receive at">
               {destination ? (
-                <a className="underline underline-offset-2" href={solscanAccount(destination)} target="_blank" rel="noopener noreferrer">
-                  {short(destination, 6, 6)}
+                <a className="underline underline-offset-2" href={etherscanAddress(destination)} target="_blank" rel="noopener noreferrer">
+                  {short(destination, 6, 4)}
                 </a>
               ) : (
                 '–'
               )}
             </Row>
             <Row label="Refund address">{data?.refundAddress || local?.refund ? short((data?.refundAddress || local?.refund)!, 6, 6) : 'None'}</Row>
-            <Row label="Deposit tx">
-              {data?.hashIn?.hash ? (
-                <a className="underline underline-offset-2" href={data.hashIn.link ?? '#'} target="_blank" rel="noopener noreferrer">
-                  {short(data.hashIn.hash, 6, 6)}
-                </a>
-              ) : (
-                'Not seen yet'
-              )}
-            </Row>
-            <Row label="SOL payout tx">
-              {data?.hashOut?.hash ? (
-                <a className="underline underline-offset-2" href={solscanTx(data.hashOut.hash)} target="_blank" rel="noopener noreferrer">
-                  {short(data.hashOut.hash, 6, 6)}
-                </a>
-              ) : (
-                'Not sent yet'
-              )}
-            </Row>
+            <Row label="Deposit tx">{data?.hashIn?.hash ? <HashLink hash={data.hashIn.hash} href={data.hashIn.link} /> : 'Not seen yet'}</Row>
+            <Row label="ETH payout tx">{data?.hashOut?.hash ? <HashLink hash={data.hashOut.hash} href={etherscanTx(data.hashOut.hash)} /> : 'Not sent yet'}</Row>
             <Row label="Provider status">{data?.status ?? '…'}</Row>
           </Panel>
         </div>

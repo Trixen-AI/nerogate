@@ -2,9 +2,9 @@ import { useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { AssetPicker } from '../components/AssetPicker'
 import { ActionButton, Field, inputCls, Notice, PageHead, Panel, Row, Skeleton } from '../components/ui'
-import { assetBySymbol, SOL_MINT, type Asset } from '../lib/assets'
-import { createXmrSolOrder, XMR_ADDRESS } from '../lib/api'
-import { num, pct, short, usd } from '../lib/format'
+import { assetBySymbol, isNative, type Asset } from '../lib/assets'
+import { createXmrEthOrder, IMPACT_BLOCK, IMPACT_WARN, XMR_ADDRESS } from '../lib/api'
+import { num, short, usd } from '../lib/format'
 import { isWalletAddress } from '../lib/holdings'
 import { saveOrder } from '../lib/orders'
 import { useDebounced, useTwoLegQuote } from '../hooks'
@@ -32,7 +32,7 @@ export default function SwapPage() {
   const xmr = Number(xmrText)
   const debouncedXmr = useDebounced(Number.isFinite(xmr) && xmr > 0 ? xmr : 0, 450)
   const q = useTwoLegQuote(asset, debouncedXmr)
-  const isSol = asset.mint === SOL_MINT
+  const native = isNative(asset)
 
   const min = q.rate.data?.minAmount ?? q.error?.minAmount
   const max = q.rate.data?.maxAmount ?? q.error?.maxAmount
@@ -44,10 +44,14 @@ export default function SwapPage() {
         : max && xmr > max
           ? `Maximum is ${num(max)} XMR right now.`
           : undefined
-  const destError = !destination ? 'Connect a wallet or paste a Solana address.' : !isWalletAddress(destination) ? 'This is not a Solana wallet address.' : undefined
+  const destError = !destination ? 'Connect a wallet or paste an Ethereum address.' : !isWalletAddress(destination) ? 'This is not a valid Ethereum address.' : undefined
   const refundError = refund && !XMR_ADDRESS.test(refund.trim()) ? 'A Monero address starts with 4 or 8 and is 95 characters long.' : undefined
-  const quoteReady = !!q.rate.data && (isSol || !!q.quote.data) && debouncedXmr === xmr
-  const canSubmit = !amountError && !destError && !refundError && quoteReady && !submitting
+  const blocked = !native && q.loss != null && q.loss >= IMPACT_BLOCK
+  const liquidityError = blocked
+    ? `${asset.symbol} does not have enough liquidity on Ethereum for this amount: the route returns ${q.loss!.toFixed(0)}% less than the market price. Try a smaller amount or another asset.`
+    : undefined
+  const quoteReady = !!q.rate.data && (native || !!q.quote.data) && debouncedXmr === xmr
+  const canSubmit = !amountError && !destError && !refundError && !blocked && quoteReady && !submitting
 
   async function submit(e: React.FormEvent) {
     e.preventDefault()
@@ -56,7 +60,7 @@ export default function SwapPage() {
     setSubmitting(true)
     setSubmitError('')
     try {
-      const order = await createXmrSolOrder({ amount: xmr, withdrawalAddress: destination.trim(), refundAddress: refund.trim() || undefined })
+      const order = await createXmrEthOrder({ amount: xmr, withdrawalAddress: destination.trim(), refundAddress: refund.trim() || undefined })
       saveOrder({
         id: order.id,
         asset: asset.symbol,
@@ -65,7 +69,7 @@ export default function SwapPage() {
         refund: refund.trim() || undefined,
         depositAddress: order.depositAddress,
         createdAt: Date.now(),
-        quote: { sol: q.solAfterBridge, assetOut: q.assetOut, usd: q.usdValue },
+        quote: { eth: q.ethAfterBridge, assetOut: q.assetOut, usd: q.usdValue },
       })
       navigate(`/app/orders/${order.id}`)
     } catch (err) {
@@ -74,13 +78,13 @@ export default function SwapPage() {
     }
   }
 
-  const route = isSol ? 'XMR → SOL (exolix)' : `XMR → SOL (exolix) → ${asset.symbol} (Jupiter)`
+  const route = native ? 'XMR → ETH (exolix)' : `XMR → ETH (exolix) → ${asset.symbol} (KyberSwap)`
 
   return (
     <div className="flex flex-col gap-8">
       <PageHead
         title="New swap"
-        sub="Pay with XMR from any wallet. The asset settles to a Solana address you control. No account, and connecting a wallet is optional."
+        sub="Pay with XMR from any wallet. The asset settles to an Ethereum address you control. No account, and connecting a wallet is optional."
       />
       <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-[1.1fr_1fr] gap-6 items-start" noValidate>
         <Panel>
@@ -109,22 +113,22 @@ export default function SwapPage() {
               </div>
             </Field>
 
-            <Field label="Receive at (Solana address)" htmlFor="dest" error={touched ? destError : destination && destError}>
+            <Field label="Receive at (Ethereum address)" htmlFor="dest" error={touched ? destError : destination && destError}>
               <div className="flex flex-col gap-2">
                 <input
                   id="dest"
                   className={inputCls}
                   value={destination}
                   onChange={(e) => setDestination(e.target.value.trim())}
-                  placeholder="Connect a wallet or paste an address"
+                  placeholder="Connect a wallet or paste a 0x… address"
                   autoComplete="off"
                   spellCheck={false}
                 />
                 <div className="flex flex-wrap gap-2">
                   {walletAddress ? (
-                    destination !== walletAddress && (
+                    destination.toLowerCase() !== walletAddress.toLowerCase() && (
                       <button type="button" onClick={() => setDestination(walletAddress)} className="btn state-layer btn-bg-secondary px-3 py-1.5 text-label-sm">
-                        Use connected wallet ({short(walletAddress)})
+                        Use connected wallet ({short(walletAddress, 6, 4)})
                       </button>
                     )
                   ) : (
@@ -167,22 +171,27 @@ export default function SwapPage() {
             <div className="flex flex-col gap-5">
               <div>
                 <Row label="Route">{route}</Row>
-                <Row label="SOL after bridge">{q.rate.data ? `${num(q.solAfterBridge, 5)} SOL` : <Skeleton className="h-4 w-24" />}</Row>
-                {!isSol && <Row label="Kept for fees">{q.keptForFees} SOL</Row>}
+                <Row label="ETH after bridge">{q.rate.data ? `${num(q.ethAfterBridge, 6)} ETH` : <Skeleton className="h-4 w-24" />}</Row>
+                {!native && <Row label="Kept for gas">{q.keptForGas ? `${num(q.keptForGas, 5)} ETH` : <Skeleton className="h-4 w-20" />}</Row>}
                 <Row label="You receive ≈" strong>
                   {q.assetOut != null ? `${num(q.assetOut, 5)} ${asset.symbol}` : <Skeleton className="h-4 w-28" />}
                 </Row>
-                <Row label="Value">
-                  {q.usdValue != null ? `${usd(q.usdValue)} · impact ${pct(q.impact ?? 0, 3).replace('+', '')}` : <Skeleton className="h-4 w-32" />}
-                </Row>
+                <Row label="Value">{q.usdValue != null ? usd(q.usdValue) : <Skeleton className="h-4 w-24" />}</Row>
+                {!native && <Row label="Below market price">{q.loss != null ? `${Math.max(0, q.loss).toFixed(2)}%` : '–'}</Row>}
                 <Row label="ETA">10–30 min</Row>
               </div>
+              {!native && q.loss != null && q.loss >= IMPACT_WARN && !blocked && (
+                <Notice tone="warn">
+                  This route returns {q.loss.toFixed(1)}% less than the market price because {asset.symbol} liquidity on Ethereum is thin.
+                </Notice>
+              )}
+              {liquidityError && <Notice tone="error">{liquidityError}</Notice>}
               {q.error && !amountError && <Notice tone="error">{q.error.message}</Notice>}
               {submitError && <Notice tone="error">{submitError}</Notice>}
-              <ActionButton type="submit" full disabled={touched && !canSubmit}>
+              <ActionButton type="submit" full disabled={(touched && !canSubmit) || blocked}>
                 {submitting ? 'Creating deposit address…' : 'Get deposit address'}
               </ActionButton>
-              {touched && !canSubmit && !submitting && !submitError && (
+              {touched && !canSubmit && !submitting && !submitError && !blocked && (
                 <p className="text-body-sm text-ink-50 text-center">{amountError ?? destError ?? refundError ?? 'Waiting for a fresh quote…'}</p>
               )}
             </div>
@@ -191,13 +200,13 @@ export default function SwapPage() {
           <Panel title="How it works">
             <ol className="flex flex-col gap-4 text-body-sm text-ink-30">
               <li>
-                <b className="text-darkest">Quote.</b> Pick an asset and an XMR amount. We price the XMR→SOL leg and the SOL→asset leg on Jupiter.
+                <b className="text-darkest">Quote.</b> Pick an asset and an XMR amount. We price the XMR→ETH leg and the ETH→asset leg on KyberSwap.
               </li>
               <li>
-                <b className="text-darkest">Pay.</b> Send the exact XMR amount to a one-time deposit address. Your Solana wallet address is the only thing the swap provider sees.
+                <b className="text-darkest">Pay.</b> Send the exact XMR amount to a one-time deposit address. Your Ethereum address is the only thing the swap provider sees.
               </li>
               <li>
-                <b className="text-darkest">Settle.</b> SOL lands in your wallet in 10–30 minutes. One signature buys the asset through Jupiter.
+                <b className="text-darkest">Settle.</b> ETH lands in your wallet in 10–30 minutes. One transaction buys the asset through KyberSwap.
               </li>
             </ol>
           </Panel>

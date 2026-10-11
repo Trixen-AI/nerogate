@@ -137,7 +137,7 @@ function Shell() {
 export default function Dashboard() {
   usePageMeta(
     'Nerogate App | Swap XMR for tokenized stocks, ETFs and gold',
-    'Get a live quote, pay with XMR from any wallet and receive SPYx, QQQx, GLDx, NVDAx, USDC or SOL at your own Solana address.',
+    'Get a live quote, pay with XMR from any wallet and receive SPYx, QQQx, GLDx, NVDAx, USDC or ETH at your own Ethereum address.',
     '/app',
   )
   return (

@@ -9,9 +9,9 @@ Downloaded 2026-10-08. Nothing was drawn, traced, recoloured or converted from r
 |---|---|---|---|
 | monero.svg | https://raw.githubusercontent.com/monero-project/monero-gui/master/images/themes/white/Monero-Logo.svg | https://github.com/monero-project/monero-gui (official Monero project repo) | Horizontal: orange symbol + grey "MONERO" wordmark, for light backgrounds. The getmonero.org press kit (https://www.getmonero.org/press-kit/) offers the main logo only as PNG/AI, so the SVG comes from the official monero-project GitHub org. |
 | monero-mark.svg | https://raw.githubusercontent.com/monero-project/monero-gui/master/images/monero-vector.svg | https://github.com/monero-project/monero-gui | Symbol only (XMR token icon). |
-| solana.svg | https://solana.com/src/img/branding/solanaLogo.svg | https://solana.com/branding | Horizontal logotype: gradient mark + WHITE wordmark (for dark backgrounds). No dark-wordmark SVG on the page (a Google Drive pack is linked but not used). |
-| solana-mark.svg | https://solana.com/src/img/branding/solanaLogoMark.svg | https://solana.com/branding | Gradient logomark (SOL token icon). |
-| jupiter.svg | https://jup.ag/favicon.svg | https://jup.ag/ (same mark the site header draws inline) | MARK ONLY. Jupiter has no public brand kit (a brand repository is only a proposal on discuss.jup.ag), and jup.ag shows no wordmark lockup. Official horizontal SVG: not found. Rejected: jup-ag/docs `logo/*.svg`, which is the Mintlify "Mint Starter Kit" placeholder and not a Jupiter logo. |
+| ethereum-mark.svg | https://ethereum.org/images/assets/svgs/eth-diamond-rainbow.svg | https://ethereum.org/en/assets (ETH diamond, color) | True vector colour diamond, used on the dark partner band. The light landscape logos on the page are PNGs wrapped in SVG, so they were not used. |
+| kyberswap-white.svg | https://kyber.network/media/logos/kyberswap-text-white.svg | https://kyber.network/media-kit | White KyberSwap logo (for dark backgrounds). |
+| kyberswap.svg | https://kyber.network/media/logos/kyberswap.svg | https://kyber.network/media-kit | Standard KyberSwap logo. |
 | exolix.svg | https://exolix.com/static/media/exolix.ccfd13e7d0ea38349e2f7f65e2a3faed.svg | https://exolix.com/ (header logo) | WHITE wordmark with mint/red X accents (for dark backgrounds). The official press kit (https://exolix.com/presskit.zip) has only PNG + AI. Needs browser headers, because Cloudflare returns 403 to plain curl. |
 | xstocks.svg | https://docs.xstocks.fi/assets/logo.09a895f332a8714abab09f7c82c634894f01e3ea5547a7d45ee9b46b30777875.9c1bb791.svg | https://docs.xstocks.fi/docs (official xStocks docs) | Gradient mark + WHITE "xStocks by PAYWARD" wordmark (for dark backgrounds). No press/brand kit page on xstocks.fi / xstocks.com. |
 | backed.svg | https://cdn.prod.website-files.com/603de78742be86399f94ec70/67cde55db8c67a13adacaf55_backed-logo-white.svg | https://backed.fi/ (header + footer logo, Webflow CDN) | WHITE horizontal "BACKED" logo (for dark backgrounds). No brand kit page on backed.fi; no dark variant found. |
@@ -33,5 +33,4 @@ The site links to X only (https://x.com/Nerogate_), so only the X file is kept.
 
 ## Not found (no official SVG; nothing substituted)
 
-- **Jupiter horizontal lockup**: not found (mark saved as `jupiter.svg`, see above).
 - **Cloudflare full-colour horizontal**: not found as SVG (white mono horizontal + colour mark saved).

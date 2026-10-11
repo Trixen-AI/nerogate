@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router'
 import { ActionButton, AssetBadge, inputCls, PageHead, Panel, Skeleton, StagePill } from '../components/ui'
-import { assetBySymbol, SOL_MINT } from '../lib/assets'
+import { assetBySymbol, isNative } from '../lib/assets'
 import { stageOf } from '../lib/api'
 import { ago, num, short } from '../lib/format'
 import { removeOrder, useOrders, type LocalOrder } from '../lib/orders'
@@ -11,7 +11,7 @@ function OrderRow({ order }: { order: LocalOrder }) {
   const status = useOrderStatus(order.id)
   const asset = assetBySymbol(order.asset)
   const stage = stageOf(status.data?.status)
-  const done = !!order.buy || (asset?.mint === SOL_MINT && stage === 'delivered')
+  const done = !!order.buy || ((asset ? isNative(asset) : false) && stage === 'delivered')
   const needsBuy = stage === 'delivered' && !done
   return (
     <li className="flex flex-col xs:flex-row xs:items-center gap-4 py-4 border-b border-veil-black-16 last:border-0">
@@ -22,7 +22,7 @@ function OrderRow({ order }: { order: LocalOrder }) {
             {num(order.amountXmr)} XMR → {order.asset}
           </span>
           <span className="text-body-sm text-ink-50 truncate">
-            {order.id} · {ago(order.createdAt)} · to {short(order.destination)}
+            {order.id} · {ago(order.createdAt)} · to {short(order.destination, 6, 4)}
           </span>
         </span>
       </Link>

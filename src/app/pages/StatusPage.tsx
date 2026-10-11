@@ -1,10 +1,11 @@
 import type { ReactNode } from 'react'
 import useSWR from 'swr'
+import { formatGwei, formatUnits, parseEther } from 'viem'
 import { ActionButton, Notice, PageHead, Panel, Row } from '../components/ui'
-import { USDC_MINT } from '../lib/assets'
-import { getQuote, getThorXmrStatus, getXmrSolRate, LAMPORTS } from '../lib/api'
+import { USDC_ADDRESS } from '../lib/assets'
+import { getQuote, getThorXmrStatus, getXmrEthRate, routeVenues } from '../lib/api'
+import { publicClient } from '../lib/chain'
 import { num } from '../lib/format'
-import { connection } from '../lib/connection'
 import { cx } from '@/lib/cx'
 
 async function timed<T>(fn: () => Promise<T>) {
@@ -48,9 +49,9 @@ function Check({ title, role, health, summary, children }: { title: string; role
 const opts = { refreshInterval: 60_000, shouldRetryOnError: false, revalidateOnFocus: false }
 
 export default function StatusPage() {
-  const exolix = useSWR('status-exolix', () => timed(() => getXmrSolRate(1)), opts)
-  const jupiter = useSWR('status-jupiter', () => timed(() => getQuote(USDC_MINT, BigInt(0.1 * LAMPORTS))), opts)
-  const rpc = useSWR('status-rpc', () => timed(() => connection.getSlot('confirmed')), opts)
+  const exolix = useSWR('status-exolix', () => timed(() => getXmrEthRate(1)), opts)
+  const kyber = useSWR('status-kyber', () => timed(() => getQuote(USDC_ADDRESS, parseEther('0.05'))), opts)
+  const rpc = useSWR('status-rpc', () => timed(async () => ({ block: await publicClient.getBlockNumber(), gasPrice: await publicClient.getGasPrice() })), opts)
   const thor = useSWR('status-thor', () => timed(() => getThorXmrStatus()), opts)
 
   const h = (s: { data?: unknown; error?: unknown; isLoading: boolean }): Health => (s.isLoading && !s.data ? 'checking' : s.error ? 'down' : 'ok')
@@ -67,7 +68,7 @@ export default function StatusPage() {
             variant="secondary"
             onClick={() => {
               exolix.mutate()
-              jupiter.mutate()
+              kyber.mutate()
               rpc.mutate()
               thor.mutate()
             }}
@@ -80,13 +81,13 @@ export default function StatusPage() {
       <div className="grid grid-cols-1 xs:grid-cols-2 gap-6">
         <Check
           title="Exolix"
-          role="Leg 1 · XMR → SOL instant exchange"
+          role="Leg 1 · XMR → ETH instant exchange"
           health={h(exolix)}
           summary={exolix.data ? `Quoting · ${exolix.data.ms} ms` : exolix.error ? 'Not quoting' : 'Checking…'}
         >
           {exolix.data && (
             <>
-              <Row label="1 XMR">{num(exolix.data.value.toAmount, 5)} SOL</Row>
+              <Row label="1 XMR">{num(exolix.data.value.toAmount, 6)} ETH</Row>
               <Row label="Accepted amount">
                 {num(exolix.data.value.minAmount)} to {num(exolix.data.value.maxAmount)} XMR
               </Row>
@@ -96,33 +97,34 @@ export default function StatusPage() {
         </Check>
 
         <Check
-          title="Jupiter"
-          role="Leg 2 · SOL → asset swap routing"
-          health={h(jupiter)}
-          summary={jupiter.data ? `Routing · ${jupiter.data.ms} ms` : jupiter.error ? 'Not routing' : 'Checking…'}
+          title="KyberSwap"
+          role="Leg 2 · ETH → asset swap routing"
+          health={h(kyber)}
+          summary={kyber.data ? `Routing · ${kyber.data.ms} ms` : kyber.error ? 'Not routing' : 'Checking…'}
         >
-          {jupiter.data && (
+          {kyber.data && (
             <>
-              <Row label="0.1 SOL">{num(Number(jupiter.data.value.outAmount) / 1e6, 4)} USDC</Row>
-              <Row label="Route">{jupiter.data.value.routePlan.map((r) => r.swapInfo.label).filter(Boolean).join(' → ')}</Row>
+              <Row label="0.05 ETH">{num(Number(formatUnits(BigInt(kyber.data.value.routeSummary.amountOut), 6)), 4)} USDC</Row>
+              <Row label="Route">{routeVenues(kyber.data.value.routeSummary).join(' → ') || 'KyberSwap'}</Row>
             </>
           )}
-          {jupiter.error && <Notice tone="error">{(jupiter.error as Error).message}</Notice>}
+          {kyber.error && <Notice tone="error">{(kyber.error as Error).message}</Notice>}
         </Check>
 
         <Check
-          title="Solana RPC"
-          role="Balances, confirmations and sending your signature"
+          title="Ethereum RPC"
+          role="Balances, gas and confirming your transaction"
           health={h(rpc)}
           summary={rpc.data ? `Synced · ${rpc.data.ms} ms` : rpc.error ? 'Unreachable' : 'Checking…'}
         >
           {rpc.data && (
             <>
-              <Row label="Current slot">{rpc.data.value.toLocaleString('en-US')}</Row>
-              <Row label="Solana">Mainnet</Row>
+              <Row label="Latest block">{rpc.data.value.block.toLocaleString('en-US')}</Row>
+              <Row label="Gas price">{Number(formatGwei(rpc.data.value.gasPrice)).toFixed(2)} gwei</Row>
+              <Row label="Ethereum">Mainnet</Row>
             </>
           )}
-          {rpc.error && <Notice tone="error">{(rpc.error as Error).message}</Notice>}
+          {rpc.error && <Notice tone="error">{(rpc.error as Error).message.split('\n')[0]}</Notice>}
         </Check>
 
         <Check title="THORChain" role="Planned non-custodial route for leg 1" health={thorHealth} summary={thorSummary}>

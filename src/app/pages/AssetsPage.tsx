@@ -3,13 +3,13 @@ import { Link, useNavigate } from 'react-router'
 import { AssetBadge, Notice, PageHead, Panel, Skeleton } from '../components/ui'
 import { ASSETS, CATEGORIES, type AssetCategory } from '../lib/assets'
 import { compact, pct, usd } from '../lib/format'
-import { usePrices } from '../hooks'
+import { useMarkets } from '../hooks'
 import { cx } from '@/lib/cx'
 
-type Sort = 'default' | 'change' | 'liquidity'
+type Sort = 'default' | 'change' | 'mcap'
 
 export default function AssetsPage() {
-  const prices = usePrices()
+  const prices = useMarkets()
   const navigate = useNavigate()
   const [cat, setCat] = useState<AssetCategory | 'All'>('All')
   const [query, setQuery] = useState('')
@@ -19,16 +19,16 @@ export default function AssetsPage() {
     const q = query.trim().toLowerCase()
     const list = ASSETS.filter((a) => (cat === 'All' || a.category === cat) && (!q || a.symbol.toLowerCase().includes(q) || a.name.toLowerCase().includes(q))).map((a) => ({
       asset: a,
-      p: prices.data?.[a.mint] ?? undefined,
+      p: prices.data?.[a.symbol],
     }))
-    if (sort === 'change') return list.toSorted((x, y) => (y.p?.priceChange24h ?? -1e9) - (x.p?.priceChange24h ?? -1e9))
-    if (sort === 'liquidity') return list.toSorted((x, y) => (y.p?.liquidity ?? 0) - (x.p?.liquidity ?? 0))
+    if (sort === 'change') return list.toSorted((x, y) => (y.p?.change24h ?? -1e9) - (x.p?.change24h ?? -1e9))
+    if (sort === 'mcap') return list.toSorted((x, y) => (y.p?.marketCap ?? 0) - (x.p?.marketCap ?? 0))
     return list
   }, [cat, query, sort, prices.data])
 
   return (
     <div className="flex flex-col gap-8">
-      <PageHead title="Assets" sub="Everything you can receive for XMR. Prices and liquidity come live from Jupiter and refresh every 30 seconds." />
+      <PageHead title="Assets" sub="Everything you can receive for XMR on Ethereum. Prices and market data come live from CoinGecko and refresh every minute." />
 
       <div className="flex flex-col xs:flex-row gap-3 xs:items-center xs:justify-between">
         <div className="flex gap-2 overflow-x-auto [scrollbar-width:none]" role="tablist" aria-label="Category">
@@ -63,12 +63,12 @@ export default function AssetsPage() {
           >
             <option value="default">Default order</option>
             <option value="change">24h change</option>
-            <option value="liquidity">Liquidity</option>
+            <option value="mcap">Market cap</option>
           </select>
         </div>
       </div>
 
-      {prices.error && <Notice tone="error">Prices are unavailable right now. Jupiter did not respond.</Notice>}
+      {prices.error && <Notice tone="error">Prices are unavailable right now. CoinGecko did not respond.</Notice>}
 
       <Panel>
         <div className="overflow-x-auto -mx-6 px-6">
@@ -79,7 +79,7 @@ export default function AssetsPage() {
                 <th className="pb-3 font-medium">Category</th>
                 <th className="pb-3 font-medium text-right">Price</th>
                 <th className="pb-3 font-medium text-right">24h</th>
-                <th className="pb-3 font-medium text-right">Liquidity</th>
+                <th className="pb-3 font-medium text-right">Market cap</th>
                 <th className="pb-3" />
               </tr>
             </thead>
@@ -101,15 +101,15 @@ export default function AssetsPage() {
                   </td>
                   <td className="py-3 pr-4 text-body-sm text-ink-30">{asset.category}</td>
                   <td className="py-3 pr-4 text-right text-label-md text-darkest">{p ? usd(p.usdPrice) : <Skeleton className="h-4 w-16" />}</td>
-                  <td className={cx('py-3 pr-4 text-right text-body-sm', (p?.priceChange24h ?? 0) >= 0 ? 'text-[#1d6b3a]' : 'text-[#9b2c1f]')}>{pct(p?.priceChange24h)}</td>
-                  <td className="py-3 pr-4 text-right text-body-sm text-ink-30">{compact(p?.liquidity)}</td>
+                  <td className={cx('py-3 pr-4 text-right text-body-sm', (p?.change24h ?? 0) >= 0 ? 'text-[#1d6b3a]' : 'text-[#9b2c1f]')}>{pct(p?.change24h)}</td>
+                  <td className="py-3 pr-4 text-right text-body-sm text-ink-30">{compact(p?.marketCap)}</td>
                   <td className="py-3 text-right">
                     <Link
                       to={`/app?asset=${asset.symbol}`}
                       onClick={(e) => e.stopPropagation()}
                       className="btn state-layer btn-bg-secondary px-3 py-1.5 text-label-sm whitespace-nowrap"
                     >
-                      {asset.symbol === 'SOL' ? 'Get SOL' : 'Buy with XMR'}
+                      {asset.symbol === 'ETH' ? 'Get ETH' : 'Buy with XMR'}
                     </Link>
                   </td>
                 </tr>

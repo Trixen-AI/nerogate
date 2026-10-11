@@ -59,7 +59,7 @@ for (let i = 0; i < 900; i++) {
 }
 const h1 = line(display, 'Monero in.', 80, 300, 92)
 const h2 = line(display, 'Real-world assets out.', 80, 404, 92)
-const sub = line(text, 'The private on-ramp to tokenized stocks, ETFs and gold on Solana.', 82, 478, 30, 0)
+const sub = line(text, 'The private on-ramp to tokenized stocks, ETFs and gold on Ethereum.', 82, 478, 30, 0)
 const domain = line(text, 'nerogate.org', 0, 0, 28, 0)
 
 const og = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">
